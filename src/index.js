@@ -10,16 +10,21 @@ refs.input.addEventListener('input', debounce(onCountryChoice, DEBOUNCE_DELAY));
 
 function onCountryChoice(evt) {
   const chosenCountry = evt.target.value.trim();
-
-  fetchCountries(chosenCountry)
-    .then(onCountryList)
-    .catch(error => {
-      Notify.failure('Oops, there is no country with that name', {
-        timeout: 2000,
+  if (chosenCountry === '') {
+    Notify.failure('Please, write name of country');
+    refs.list.innerHTML = '';
+    return;
+  } else {
+    fetchCountries(chosenCountry)
+      .then(onCountryList)
+      .catch(error => {
+        Notify.failure('Oops, there is no country with that name', {
+          timeout: 2000,
+        });
+        refs.list.innerHTML = '';
+        refs.countryInfo.innerHTML = '';
       });
-      refs.list.innerHTML = '';
-      refs.countryInfo.innerHTML = '';
-    });
+  }
 }
 
 function onCountryList(countries) {
@@ -35,20 +40,25 @@ function onCountryList(countries) {
 
   if (numberOfCountries === 1) {
     refs.list.innerHTML = '';
-    const singleCountry = countries
-      .map(
-        country => `<li class="item" ><img width="70" height="40"src="${
-          country.flags.svg
-        }" alt="Flag of ${country.name}"><h1 class="title">${
-          country.name.official
-        }</h1>
+    if (refs.countryInfo.textContent === '') {
+      const singleCountry = countries
+        .map(
+          country => `<li class="item" ><img width="70" height="40"src="${
+            country.flags.svg
+          }" alt="Flag of ${country.name}"><h1 class="title">${
+            country.name.official
+          }</h1>
     <p> <b>Capital:</b> ${country.capital}</p><p><b>Population:</b> ${
-          country.population
-        }</p><p><b>Languages:</b> ${Object.values(country.languages)}</p></li>`
-      )
-      .join('');
-    refs.countryInfo.insertAdjacentHTML('beforeend', singleCountry);
-    return;
+            country.population
+          }</p><p><b>Languages:</b> ${Object.values(
+            country.languages
+          )}</p></li>`
+        )
+        .join('');
+      refs.countryInfo.insertAdjacentHTML('beforeend', singleCountry);
+      refs.input.removeEventListener('input', onCountryChoice);
+      return;
+    }
   }
 
   if (numberOfCountries > 10) {
@@ -58,6 +68,7 @@ function onCountryList(countries) {
         timeout: 2000,
       }
     );
+    refs.list.innerHTML = '';
   }
 
   refs.countryInfo.innerHTML = '';
